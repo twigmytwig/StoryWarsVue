@@ -38,37 +38,38 @@ export default {
   },
   methods: {
     startDrawing(event) {
+      const rect = this.$refs.canvas.getBoundingClientRect();
       this.isDrawing = true;
-      // Set the starting point for the drawing
-      this.lastX = event.clientX;
-      this.lastY = event.clientY;
+      this.lastX = event.clientX - rect.left;
+      this.lastY = event.clientY - rect.top;
     },
     draw(event) {
-      if (!this.isDrawing) return;  // If not drawing, do nothing
+      if (!this.isDrawing) return;
 
-      // Send drawing data to the SignalR hub first
-      const drawingData = {
-        x: event.clientX,
-        y: event.clientY,
-        lastX: this.lastX,  // Send previous position, before updating
-        lastY: this.lastY,
-        color: "#000000",  // Color of the drawing stroke
-        lineWidth: 2       // Line width
-      };
-      this.sendDrawingData(drawingData);
+      const rect = this.$refs.canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
 
-      // Draw on canvas
       this.context.beginPath();
       this.context.moveTo(this.lastX, this.lastY);
-      this.context.lineTo(event.clientX, event.clientY);
+      this.context.lineTo(x, y);
       this.context.strokeStyle = "#000000";  // Color of the stroke
       this.context.lineWidth = 2;            // Thickness of the stroke
       this.context.stroke();
       this.context.closePath();
 
-      // Update last positions
-      this.lastX = event.clientX;
-      this.lastY = event.clientY;
+      this.lastX = x;
+      this.lastY = y;
+
+      const drawingData = {
+        x: x,
+        y: y,
+        lastX: this.lastX,
+        lastY: this.lastY,
+        color: "#000000",  // Color of the drawing stroke
+        lineWidth: 2       // Line width
+      };
+      this.sendDrawingData(drawingData);
     },
     stopDrawing() {
       this.isDrawing = false;
