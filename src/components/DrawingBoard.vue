@@ -43,7 +43,6 @@ const setupSignalR = async () => {
 
   try {
     await connection.value.start();
-    alert(props.sessionId)
     if (props.sessionId) {
       await connection.value.invoke('JoinSession', props.sessionId);
     }
@@ -63,6 +62,21 @@ const updateCanvasWithReceivedData = (drawingData) => {
     context.value.closePath();
   }
 };
+/*// Update the canvas with the received drawing data
+const updateCanvasWithReceivedData = (drawingData) => {
+  if (context.value) {
+    // Process drawing data to render on the canvas
+    drawingData.forEach((data) => {
+      context.value.beginPath();
+      context.value.moveTo(data.lastX, data.lastY);
+      context.value.lineTo(data.x, data.y);
+      context.value.strokeStyle = data.color;
+      context.value.lineWidth = data.lineWidth;
+      context.value.stroke();
+      context.value.closePath();
+    });
+  }
+};*/
 
 // Drawing functions
 const startDrawing = (event) => {
