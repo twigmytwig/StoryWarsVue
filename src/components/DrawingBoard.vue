@@ -1,23 +1,33 @@
 <template>
-  <div class="relative">
+  <div class="relative ">
     <!-- Display invite code at the top -->
     <div v-if="props.sessionId" class="absolute top-4 left-4 bg-gray-700 text-white p-2 rounded">
       Invite Code: {{ props.sessionId }}
+
     </div>
-    
+    <button
+      @click="leaveSession"
+      class="absolute top-4 right-4 bg-red-500 text-white p-2 rounded"
+    >
+      Leave Game
+    </button>
+    <br/>
     <!-- Canvas for drawing -->
-    <canvas
-      ref="canvas"
-      @mousedown="startDrawing"
-      @mousemove="draw"
-      @mouseup="stopDrawing"
-      class="w-full h-full"
-    ></canvas>
+     <div class="flex flex-col items-center justify-center">
+        <canvas
+        ref="canvas"
+        @mousedown="startDrawing"
+        @mousemove="draw"
+        @mouseup="stopDrawing"
+        class="drawing-canvas "
+      ></canvas>
+     </div>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from 'vue';
+import { ref, onMounted, onUnmounted, defineProps } from 'vue';
 import * as signalR from '@microsoft/signalr';
 
 // Define props
@@ -62,21 +72,6 @@ const updateCanvasWithReceivedData = (drawingData) => {
     context.value.closePath();
   }
 };
-/*// Update the canvas with the received drawing data
-const updateCanvasWithReceivedData = (drawingData) => {
-  if (context.value) {
-    // Process drawing data to render on the canvas
-    drawingData.forEach((data) => {
-      context.value.beginPath();
-      context.value.moveTo(data.lastX, data.lastY);
-      context.value.lineTo(data.x, data.y);
-      context.value.strokeStyle = data.color;
-      context.value.lineWidth = data.lineWidth;
-      context.value.stroke();
-      context.value.closePath();
-    });
-  }
-};*/
 
 // Drawing functions
 const startDrawing = (event) => {
@@ -115,6 +110,16 @@ const draw = (event) => {
   lastY.value = y;
 };
 
+async function leaveSession(){
+  try{
+    await connection.value.invoke('LeaveSession', props.sessionId);
+    await connection.value.stop();
+  } catch(error){
+    alert("There was an error when trying to leave the game!");
+  }
+  
+}
+
 const stopDrawing = () => {
   isDrawing.value = false;
 };
@@ -130,18 +135,23 @@ const sendDrawingData = async (drawingData) => {
 // On component mount
 onMounted(() => {
   if (canvas.value) {
-    canvas.value.width = window.innerWidth;
-    canvas.value.height = window.innerHeight;
+    canvas.value.width = 800;
+    canvas.value.height = 600;
     context.value = canvas.value.getContext('2d');
   }
   setupSignalR();
+});
+
+onUnmounted(() => {
+  leaveSession();
 });
 </script>
 
 <style scoped>
 /* Add additional styles if needed */
-canvas {
-  border: 1px solid #ccc;
+.drawing-canvas {
+  border: 2px solid #ccc;
   display: block;
+  background-color: white;
 }
 </style>

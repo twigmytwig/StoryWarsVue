@@ -1,11 +1,11 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    <h1 class="text-3xl font-bold mb-4">Home Page</h1>
+  <div class="flex flex-col items-center justify-center py-4">
+    <h1 class="text-3xl font-bold mb-4">Host a game or join one!</h1>
     
     <input
       v-model="sessionId"
       type="text"
-      placeholder="Enter or generate session ID"
+      placeholder="Enter invite code to join"
       class="border border-gray-300 p-2 mb-4"
     />
     
