@@ -1,7 +1,12 @@
 <template>
   <div class="flex flex-col items-center justify-center py-4">
     <h1 class="text-3xl font-bold mb-4">Host a game or join one!</h1>
-    
+    <input 
+        v-model="displayName" 
+        type="text" 
+        placeholder="Enter your display name" 
+        class="border p-2 mb-4"
+      />
     <input
       v-model="sessionId"
       type="text"
@@ -35,10 +40,16 @@ const emit = defineEmits(['onSessionStart']);
 
 // Reactive variables
 const sessionId = ref('');
+const displayName = ref(""); // Added displayName
 const isSessionActive = ref(false);
 
 // Host session by generating a random session ID
 const hostSession = () => {
+  if(displayName.value === ""){
+    alert("You have to type in a display name!");
+    return;
+  }
+  localStorage.setItem('displayName', displayName.value)
   sessionId.value = Math.random().toString(36).substring(7);
   isSessionActive.value = true;
   emit('onSessionStart', sessionId.value);
@@ -46,6 +57,11 @@ const hostSession = () => {
 
 // Join session with user-entered session ID
 const joinSession = () => {
+  if(displayName.value === ""){
+    alert("You have to type in a display name!");
+    return;
+  }
+  localStorage.setItem('displayName', displayName.value)
   if (sessionId.value) {
     isSessionActive.value = true;
     emit('onSessionStart', sessionId.value);

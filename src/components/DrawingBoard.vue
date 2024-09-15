@@ -1,13 +1,13 @@
 <template>
   <div class="relative ">
     <!-- Display invite code at the top -->
-    <div v-if="props.sessionId" class="absolute top-4 left-4 bg-gray-700 text-white p-2 rounded">
+    <div v-if="props.sessionId" class="absolute top-2 left-4 bg-gray-700 text-white p-2 rounded">
       Invite Code: {{ props.sessionId }}
 
     </div>
     <button
       @click="leaveSession"
-      class="absolute top-4 right-4 bg-red-500 text-white p-2 rounded"
+      class="absolute top-2 right-4 bg-red-500 text-white p-2 rounded"
     >
       Leave Game
     </button>
@@ -22,17 +22,21 @@
         class="drawing-canvas "
       ></canvas>
      </div>
-    
+    <div>
+      <PlayerList :players="players" class="absolute top-12 left-5"/>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineProps } from 'vue';
+import { ref, onMounted, onBeforeUnmount, defineProps, defineEmits } from 'vue';
 import * as signalR from '@microsoft/signalr';
+import PlayerList from './PlayerList.vue';
 
 // Define props
 const props = defineProps(['sessionId']);
-
+const emit = defineEmits(['onSessionEnd'])
+const players = ref([]); // Players array
 // Reactive variables
 const canvas = ref(null);
 const context = ref(null);
@@ -45,16 +49,30 @@ const connection = ref(null);
 const setupSignalR = async () => {
   connection.value = new signalR.HubConnectionBuilder()
     .withUrl('https://storywarsapi-d0cqabd3h0cmfmf6.westus-01.azurewebsites.net/drawingHub')
+	//.withUrl('https://localhost:7180/drawingHub')
     .build();
 
   connection.value.on('ReceiveDrawingData', (drawingData) => {
     updateCanvasWithReceivedData(drawingData);
   });
 
+  // Add player to the list when they join
+  connection.value.on('PlayerJoined', (playerName) => {
+    players.value.push(playerName);
+  });
+
+  // Remove player from the list when they leave
+  connection.value.on('PlayerLeft', (playerName) => {
+    players.value = players.value.filter(p => p !== playerName);
+  });
+
+  connection.value.on('ReceiveAllPlayers', (playerName) => {
+	players.value.push(playerName.value);
+  });
   try {
     await connection.value.start();
     if (props.sessionId) {
-      await connection.value.invoke('JoinSession', props.sessionId);
+      await connection.value.invoke('JoinSession', props.sessionId, localStorage.getItem('displayName'));
     }
   } catch (error) {
     console.error('Error starting SignalR connection or joining session:', error);
@@ -113,9 +131,11 @@ const draw = (event) => {
 async function leaveSession(){
   try{
     await connection.value.invoke('LeaveSession', props.sessionId);
-    await connection.value.stop();
+    connection.value.stop();
+    emit('onSessionEnd');
   } catch(error){
-    alert("There was an error when trying to leave the game!");
+    //alert("There was an error when trying to leave the game!");
+    console.log(error);
   }
   
 }
@@ -142,7 +162,7 @@ onMounted(() => {
   setupSignalR();
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   leaveSession();
 });
 </script>

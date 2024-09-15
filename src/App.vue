@@ -4,7 +4,7 @@
     <h3 class="bg-gray-800 text-white py-4 px-6">Draw Whatever You Want the World to See!</h3>
     <!-- Render HomePage if not in a session, otherwise show DrawingBoard -->
     <HomePage v-if="!isSessionActive" @onSessionStart="handleSessionChange" />
-    <DrawingBoard v-else :sessionId="sessionId" />
+    <DrawingBoard v-else :sessionId="sessionId" @onSessionEnd="handleSessionEnd"/>
   </div>
 </template>
 
@@ -22,6 +22,11 @@ const sessionId = ref('');
 const handleSessionChange = (id) => {
   sessionId.value = id;
   isSessionActive.value = true;
+};
+// Handle session end (user leaves session)
+const handleSessionEnd = () => {
+  sessionId.value = "";
+  isSessionActive.value = false;
 };
 </script>
 
