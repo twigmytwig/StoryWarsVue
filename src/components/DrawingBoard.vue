@@ -1,5 +1,10 @@
 <template>
   <div class="relative ">
+	<!-- Loading Screen -->
+    <div v-if="loading" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+      <div class="text-white text-2xl">{{message}}</div>
+    </div>
+
     <!-- Display invite code at the top -->
     <div v-if="props.sessionId" class="absolute top-2 left-4 bg-gray-700 text-white p-2 rounded">
       Invite Code: {{ props.sessionId }}
@@ -22,6 +27,11 @@
 		class="drawing-canvas "
 		></canvas>
 	</div>
+	<!-- Start Game Button (Only visible to host) -->
+    <button v-if="isHost" @click="startGame" class="bg-green-500 text-white px-4 py-2 mt-4">
+      Start Game
+    </button>
+
 	<!-- Tool menu to toggle between draw and erase -->
 	<ToolMenu @toolChange="handleToolChange" class="absolute bottom-4 right-4" />
 	<PenWidth @setPenWidthEmit="handlePenWidthChange" class="flex items-center justify-center place-items"/>
@@ -49,6 +59,9 @@ const context = ref(null);
 const isDrawing = ref(false);
 const lastX = ref(0);
 const lastY = ref(0);
+const isHost = ref(false); // This will determine if the current user is the host
+const loading = ref(true); // Loading state to show/hide loading screen
+const message = ref("Connecting to game server...")
 
 // Setup SignalR connection
 const connection = ref(null);
@@ -57,6 +70,10 @@ const setupSignalR = async () => {
     .withUrl('https://storywarsapi-d0cqabd3h0cmfmf6.westus-01.azurewebsites.net/drawingHub')
 	//.withUrl('https://localhost:7180/drawingHub')
     .build();
+
+  connection.value.on('GameStarted', () => {
+    alert('Host started game!');
+  });
 
   connection.value.on('ReceiveDrawingData', (drawingData) => {
     updateCanvasWithReceivedData(drawingData);
@@ -78,13 +95,27 @@ const setupSignalR = async () => {
   try {
     await connection.value.start();
     if (props.sessionId) {
-      await connection.value.invoke('JoinSession', props.sessionId, localStorage.getItem('displayName'));
+		await connection.value.invoke('JoinSession', props.sessionId, localStorage.getItem('displayName'));
+		const result = await connection.value.invoke('IsHost', props.sessionId);
+		isHost.value = result;
+		// Connection is successful, hide the loading screen
+		loading.value = false;
     }
   } catch (error) {
     console.error('Error starting SignalR connection or joining session:', error);
+	message.value = "An error occured when trying to connect. Please refresh the page and try again. If this issue persists then please... idk.. try to tell me if you know how to contact me."
   }
 };
 
+const startGame = async () => {
+  if (isHost.value) {
+    try {
+      await connection.value.invoke('StartGame', props.sessionId);
+    } catch (error) {
+      console.error('Error starting game:', error);
+    }
+  }
+};
 const updateCanvasWithReceivedData = (drawingData) => {
   if (context.value) {
     context.value.beginPath();
