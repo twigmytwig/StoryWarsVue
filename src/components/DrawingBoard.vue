@@ -12,19 +12,20 @@
       Leave Game
     </button>
     <br/>
-    <!-- Canvas for drawing -->
-     <div class="flex flex-col items-center justify-center">
-        <canvas
-        ref="canvas"
-        @mousedown="startDrawing"
-        @mousemove="draw"
-        @mouseup="stopDrawing"
-        class="drawing-canvas "
-      ></canvas>
-     </div>
-    <div>
-      <PlayerList :players="players" class="absolute top-12 left-5"/>
-    </div>
+	<!-- Canvas for drawing -->
+	<div class="flex flex-col items-center justify-center">
+		<canvas
+		ref="canvas"
+		@mousedown="startDrawing"
+		@mousemove="draw"
+		@mouseup="stopDrawing"
+		class="drawing-canvas "
+		></canvas>
+	</div>
+	<!-- Tool menu to toggle between draw and erase -->
+	<ToolMenu @toolChange="handleToolChange" class="absolute bottom-4 right-4" />
+	<PenWidth @setPenWidthEmit="handlePenWidthChange" class="flex items-center justify-center place-items"/>
+	<PlayerList :players="players" class="absolute top-12 left-5"/>
   </div>
 </template>
 
@@ -32,11 +33,16 @@
 import { ref, onMounted, onBeforeUnmount, defineProps, defineEmits } from 'vue';
 import * as signalR from '@microsoft/signalr';
 import PlayerList from './PlayerList.vue';
+import ToolMenu from './DrawingModifiers/ToolMenu.vue';
+import PenWidth from './DrawingModifiers/PenWidth.vue';
 
 // Define props
 const props = defineProps(['sessionId']);
 const emit = defineEmits(['onSessionEnd'])
 const players = ref([]); // Players array
+const currentTool = ref('draw'); // Default tool is 'draw'
+const currentPenWidth = ref(2);
+
 // Reactive variables
 const canvas = ref(null);
 const context = ref(null);
@@ -111,22 +117,32 @@ const draw = (event) => {
     y,
     lastX: lastX.value,
     lastY: lastY.value,
-    color: '#000000',
-    lineWidth: 2
+    color: currentTool.value === 'erase' ? '#ffffff' : '#000000', //TODO: FIND A BETTER SOLUTION LMAO Eraser color is white
+    lineWidth: currentTool.value === 'erase' ? 20 : 4
   };
   sendDrawingData(drawingData);
 
   context.value.beginPath();
   context.value.moveTo(lastX.value, lastY.value);
   context.value.lineTo(x, y);
-  context.value.strokeStyle = '#000000';
-  context.value.lineWidth = 2;
+  context.value.lineJoin = 'round';
+  context.value.lineCap = 'round';
+  context.value.strokeStyle = currentTool.value === 'erase' ? '#ffffff' : '#000000';
+  context.value.lineWidth = currentPenWidth.value;
   context.value.stroke();
   context.value.closePath();
 
   lastX.value = x;
   lastY.value = y;
 };
+
+const handleToolChange = (tool) => {
+  currentTool.value = tool;
+};
+
+const handlePenWidthChange = (width) => {
+	currentPenWidth.value = width;
+}
 
 async function leaveSession(){
   try{
@@ -155,9 +171,16 @@ const sendDrawingData = async (drawingData) => {
 // On component mount
 onMounted(() => {
   if (canvas.value) {
-    canvas.value.width = 800;
-    canvas.value.height = 600;
+    //canvas.value.width = 800;
+    //canvas.value.height = 600;
+	const canvasWidth = window.innerWidth * 0.8;
+    const canvasHeight = window.innerHeight * 0.8;
+    canvas.value.width = canvasWidth * 2; // Increase width for higher resolution
+    canvas.value.height = canvasHeight * 2; // Increase height for higher resolution
+    canvas.value.style.width = `${canvasWidth}px`; // Set display width
+    canvas.value.style.height = `${canvasHeight}px`; // Set display height
     context.value = canvas.value.getContext('2d');
+    context.value.scale(2, 2); // Scale context to match higher resolution
   }
   setupSignalR();
 });

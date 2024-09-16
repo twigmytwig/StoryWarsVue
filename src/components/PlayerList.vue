@@ -1,6 +1,5 @@
 <template>
     <div>
-      <h3>Connected Players</h3>
       <ul>
         <!-- Loop through player names and display them -->
         <li v-for="player in props.players" :key="player">{{ player }}</li>

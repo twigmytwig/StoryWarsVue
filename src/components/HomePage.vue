@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 
 // Emit function declaration
 const emit = defineEmits(['onSessionStart']);
@@ -45,8 +45,12 @@ const isSessionActive = ref(false);
 
 // Host session by generating a random session ID
 const hostSession = () => {
-  if(displayName.value === ""){
-    alert("You have to type in a display name!");
+  if(displayName.value === "" ){
+    alert("You have to type in a display name, loser!");
+    return;
+  }
+  if(displayName.value.length > 12){
+    alert("Name is too long, doofus!");
     return;
   }
   localStorage.setItem('displayName', displayName.value)
@@ -61,6 +65,10 @@ const joinSession = () => {
     alert("You have to type in a display name!");
     return;
   }
+  if(displayName.value.length > 12){
+    alert("Name is too long, doofus!");
+    return;
+  }
   localStorage.setItem('displayName', displayName.value)
   if (sessionId.value) {
     isSessionActive.value = true;
@@ -69,4 +77,11 @@ const joinSession = () => {
     alert('Please enter a session ID.');
   }
 };
+
+onMounted(() => {
+  const tempDisplayName = localStorage.getItem('displayName');
+  if(tempDisplayName !== ""){
+    displayName.value = tempDisplayName;
+  }
+});
 </script>

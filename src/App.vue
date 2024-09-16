@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gray-100 min-h-screen">
     <AppNavbar />
-    <h3 class="bg-gray-800 text-white py-4 px-6">Draw Whatever You Want the World to See!</h3>
+    <!--<h3 class="bg-gray-800 text-white py-4 px-6">Draw Whatever You Want the World to See!</h3>-->
     <!-- Render HomePage if not in a session, otherwise show DrawingBoard -->
     <HomePage v-if="!isSessionActive" @onSessionStart="handleSessionChange" />
     <DrawingBoard v-else :sessionId="sessionId" @onSessionEnd="handleSessionEnd"/>
