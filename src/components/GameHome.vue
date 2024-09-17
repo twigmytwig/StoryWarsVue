@@ -19,6 +19,7 @@
     <br/>
 	<!-- Canvas for drawing -->
 	<div class="flex flex-col items-center justify-center">
+    <PenColor @colorSelected="handleColorChange" />
 		<canvas v-if="!gameStarted"
 		ref="canvas"
 		@mousedown="startDrawing"
@@ -26,6 +27,7 @@
 		@mouseup="stopDrawing"
 		class="drawing-canvas "
 		></canvas>
+    <MakePrompt v-if="gameStarted && promptPhase"></MakePrompt>
 	</div>
 	<!-- Start Game Button (Only visible to host) -->
     <button v-if="isHost && !gameStarted" @click="startGame" class="bg-green-500 text-white px-4 py-2 mt-4">
@@ -45,6 +47,8 @@ import * as signalR from '@microsoft/signalr';
 import PlayerList from './PlayerList.vue';
 import ToolMenu from './DrawingModifiers/ToolMenu.vue';
 import PenWidth from './DrawingModifiers/PenWidth.vue';
+import MakePrompt from './GameComponents/MakePrompt.vue';
+import PenColor from './DrawingModifiers/PenColor.vue';
 
 // Define props
 const props = defineProps(['sessionId', 'displayName']);
@@ -61,8 +65,10 @@ const lastX = ref(0);
 const lastY = ref(0);
 const isHost = ref(false); // This will determine if the current user is the host
 const gameStarted = ref(false);
+const promptPhase = ref(false);
 const loading = ref(true); // Loading state to show/hide loading screen
 const message = ref("Connecting to game server...")
+const penColor = ref('#000000'); // Default color
 
 //----------------Setup SignalR connection
 const connection = ref(null);
@@ -74,6 +80,7 @@ const setupSignalR = async () => {
 
   connection.value.on('GameStarted', () => {
     gameStarted.value = true;
+    promptPhase.value = true;
   });
 
   connection.value.on('ReceiveDrawingData', (drawingData) => {
@@ -130,8 +137,8 @@ const draw = (event) => {
     y,
     lastX: lastX.value,
     lastY: lastY.value,
-    color: currentTool.value === 'erase' ? '#ffffff' : '#000000', //TODO: FIND A BETTER SOLUTION LMAO Eraser color is white
-    lineWidth: currentTool.value === 'erase' ? 20 : 4
+    color: currentTool.value === 'erase' ? '#ffffff' : penColor.value, //TODO: FIND A BETTER SOLUTION LMAO Eraser color is white
+    lineWidth: currentPenWidth.value
   };
   sendDrawingData(drawingData);
 
@@ -172,6 +179,11 @@ const updateCanvasWithReceivedData = (drawingData) => {
     context.value.stroke();
     context.value.closePath();
   }
+};
+
+// Handle color change
+const handleColorChange = (color) => {
+  penColor.value = color;
 };
 //--END DRAWING FUNCTIONS
 
