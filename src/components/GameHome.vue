@@ -47,7 +47,7 @@ import ToolMenu from './DrawingModifiers/ToolMenu.vue';
 import PenWidth from './DrawingModifiers/PenWidth.vue';
 
 // Define props
-const props = defineProps(['sessionId']);
+const props = defineProps(['sessionId', 'displayName']);
 const emit = defineEmits(['onSessionEnd'])
 const players = ref([]); // Players array
 const currentTool = ref('draw'); // Default tool is 'draw'
@@ -87,7 +87,7 @@ const setupSignalR = async () => {
 
   // Remove player from the list when they leave
   connection.value.on('PlayerLeft', (playerName) => {
-    alert("playerLeft!")
+    alert(playerName + "playerLeft!")
     players.value = players.value.filter(p => p !== playerName);
   });
 
@@ -207,7 +207,8 @@ const startGame = async () => {
 //Handles users leaving game
 async function leaveSession(){
   try{
-    await connection.value.invoke('LeaveSession', props.sessionId, props.playerName);
+    alert(props.displayName + '-' + props.sessionId)
+    await connection.value.invoke('LeaveSession', props.sessionId, props.displayName);
     connection.value.stop();
     emit('onSessionEnd');
   } catch(error){
@@ -216,7 +217,6 @@ async function leaveSession(){
   }
   
 }
-
 
 
 

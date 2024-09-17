@@ -56,7 +56,7 @@ const hostSession = () => {
   localStorage.setItem('displayName', displayName.value)
   sessionId.value = Math.random().toString(36).substring(7);
   isSessionActive.value = true;
-  emit('onSessionStart', sessionId.value);
+  emit('onSessionStart', sessionId.value, displayName.value);
 };
 
 // Join session with user-entered session ID
