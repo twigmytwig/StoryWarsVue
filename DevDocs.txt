@@ -1,0 +1,5 @@
+This is not meant to be read by anyone except devs so yea
+
+Notes:
+    -Drawingboard.vue:
+        This originally was the test component but I kinda got carried away and it turned into the main component. Its kind of confusing

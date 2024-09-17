@@ -10,7 +10,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import DrawingBoard from './components/DrawingBoard.vue';
+import DrawingBoard from './components/GameHome.vue';
 import AppNavbar from './components/AppNavbar.vue';
 import HomePage from './components/HomePage.vue';
 
