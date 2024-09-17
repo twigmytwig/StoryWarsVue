@@ -56,7 +56,10 @@ const hostSession = () => {
   localStorage.setItem('displayName', displayName.value)
   sessionId.value = Math.random().toString(36).substring(7);
   isSessionActive.value = true;
-  emit('onSessionStart', sessionId.value, displayName.value);
+  emit('onSessionStart', {
+    sessionId: sessionId.value,
+    displayName: displayName.value
+  });
 };
 
 // Join session with user-entered session ID
@@ -72,7 +75,10 @@ const joinSession = () => {
   localStorage.setItem('displayName', displayName.value)
   if (sessionId.value) {
     isSessionActive.value = true;
-    emit('onSessionStart', sessionId.value);
+    emit('onSessionStart', {
+    sessionId: sessionId.value,
+    displayName: displayName.value
+  });
   } else {
     alert('Please enter a session ID.');
   }

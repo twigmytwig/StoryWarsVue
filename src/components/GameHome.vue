@@ -87,7 +87,6 @@ const setupSignalR = async () => {
 
   // Remove player from the list when they leave
   connection.value.on('PlayerLeft', (playerName) => {
-    alert(playerName + "playerLeft!")
     players.value = players.value.filter(p => p !== playerName);
   });
 
@@ -207,7 +206,6 @@ const startGame = async () => {
 //Handles users leaving game
 async function leaveSession(){
   try{
-    alert(props.displayName + '-' + props.sessionId)
     await connection.value.invoke('LeaveSession', props.sessionId, props.displayName);
     connection.value.stop();
     emit('onSessionEnd');

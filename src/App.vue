@@ -20,9 +20,9 @@ const sessionId = ref('');
 const displayName = ref('');
 
 // React to session changes when user hosts or joins a session
-const handleSessionChange = (id, playerName) => {
-  sessionId.value = id;
-  displayName.value = playerName;
+const handleSessionChange = (playerData) => {
+  sessionId.value = playerData.sessionId;
+  displayName.value = playerData.displayName;
   isSessionActive.value = true;
 };
 // Handle session end (user leaves session)
